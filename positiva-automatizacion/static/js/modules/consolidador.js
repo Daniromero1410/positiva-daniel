@@ -70,10 +70,16 @@ if (document.readyState === 'loading') {
 }
 
 function initializeEventListeners() {
+    console.log('Configurando event listeners...');
+
     // Click en dropzone abre selector
-    dropzone.addEventListener('click', () => {
+    dropzone.addEventListener('click', (e) => {
+        console.log('Click en dropzone detectado');
         if (!selectedFile) {
+            console.log('Abriendo selector de archivos...');
             fileInput.click();
+        } else {
+            console.log('Ya hay un archivo seleccionado');
         }
     });
 
@@ -105,7 +111,10 @@ function initializeEventListeners() {
 
     // Handle file selection
     fileInput.addEventListener('change', (e) => {
+        console.log('Evento change del input detectado');
+        console.log('Archivos seleccionados:', e.target.files.length);
         if (e.target.files.length > 0) {
+            console.log('Archivo:', e.target.files[0].name);
             handleFile(e.target.files[0]);
         }
     });
@@ -140,13 +149,18 @@ function safeShowNotification(message, type) {
 
 // Procesar archivo
 function handleFile(file) {
+    console.log('handleFile llamado con:', file.name, file.size, 'bytes');
+
     const validation = validateFile(file);
+    console.log('Validación:', validation);
 
     if (!validation.valid) {
+        console.error('Archivo no válido:', validation.error);
         safeShowNotification(validation.error, 'error');
         return;
     }
-    
+
+    console.log('Archivo válido, guardando...');
     selectedFile = file;
     
     // Mostrar preview
@@ -161,10 +175,12 @@ function handleFile(file) {
     // Mostrar botones
     validateBtn.classList.remove('hidden');
     processBtn.classList.remove('hidden');
-    
+
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
+
+    console.log('Archivo cargado exitosamente. Preview y botones mostrados.');
 }
 
 function resetUpload() {
