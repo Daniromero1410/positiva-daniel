@@ -1,0 +1,57 @@
+<!-- Navbar Moderno -->
+<nav class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-neutral-100">
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex items-center justify-between">
+            
+            <!-- Left: Toggle + Breadcrumb -->
+            <div class="flex items-center space-x-4">
+                <!-- Sidebar Toggle (Mobile) -->
+                <button id="sidebar-toggle" 
+                        onclick="toggleSidebar()"
+                        class="lg:hidden inline-flex items-center justify-center p-2 text-neutral-600 rounded-lg hover:bg-neutral-100 transition-smooth">
+                    <i data-feather="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <!-- Page Title -->
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold text-neutral-900">
+                        {% block page_title %}Dashboard{% endblock %}
+                    </h1>
+                </div>
+            </div>
+            
+            <!-- Right: Actions + User -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                
+                <!-- Search (Desktop) -->
+                <div class="hidden md:block">
+                    <div class="relative">
+                        <input type="text" 
+                               placeholder="Buscar..." 
+                               class="w-64 pl-10 pr-4 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-positiva-500 focus:border-transparent transition-smooth">
+                        <i data-feather="search" class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 transform -translate-y-1/2"></i>
+                    </div>
+                </div>
+                
+                <!-- Notifications -->
+                <button class="relative p-2 text-neutral-600 rounded-lg hover:bg-neutral-100 transition-smooth">
+                    <i data-feather="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-positiva-500 rounded-full ring-2 ring-white"></span>
+                </button>
+                
+                <!-- User Menu -->
+                <div class="flex items-center space-x-3 pl-3 border-l border-neutral-200">
+                    <div class="hidden sm:block text-right">
+                        <p class="text-sm font-medium text-neutral-900">Sistema</p>
+                        <p class="text-xs text-neutral-500">Administrador</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-positiva-400 to-positiva-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm">
+                        AD
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>
+</nav>

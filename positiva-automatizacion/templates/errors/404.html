@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Página No Encontrada{% endblock %}
+{% block page_title %}Error 404{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto text-center py-16">
+    <div class="mb-8">
+        <i data-feather="alert-triangle" class="w-24 h-24 mx-auto text-positiva-500"></i>
+    </div>
+    <h1 class="text-4xl font-bold text-neutral-900 mb-4">Página No Encontrada</h1>
+    <p class="text-neutral-600 mb-8">
+        Lo sentimos, la página que estás buscando no existe o ha sido movida.
+    </p>
+    <a href="{{ url_for('dashboard') }}" 
+       class="btn-primary text-white font-semibold py-3 px-6 rounded-lg transition-smooth inline-flex items-center">
+        <i data-feather="home" class="w-5 h-5 mr-2"></i>
+        Volver al Dashboard
+    </a>
+</div>
+{% endblock %}

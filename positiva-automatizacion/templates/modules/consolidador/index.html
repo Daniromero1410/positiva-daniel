@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Consolidador de Servicios - Anexo 1{% endblock %}
+{% block page_title %}Consolidador de Servicios Médicos{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2">
+            <li class="inline-flex items-center">
+                <a href="{{ url_for('dashboard') }}" class="text-neutral-500 hover:text-positiva-600 inline-flex items-center text-sm transition-smooth">
+                    <i data-feather="home" class="w-4 h-4 mr-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
+                    <span class="text-sm text-neutral-700 font-medium">Consolidador Anexo 1</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 mb-6 shadow-card">
+        <div class="flex items-start space-x-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i data-feather="layers" class="w-8 h-8 text-blue-600"></i>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Consolidador de Servicios Médicos</h2>
+                <p class="text-neutral-600 leading-relaxed">
+                    Procesa archivos <strong>XLSB del Anexo 1</strong> con múltiples sedes de proveedores. 
+                    Consolida automáticamente todos los servicios médicos en un único archivo Excel con formato POSITIVA.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Steps -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6 shadow-card">
+        <div class="flex items-center justify-between">
+            <!-- Paso 1 -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                    1
+                </div>
+                <span class="text-sm font-semibold text-neutral-900 hidden sm:inline">Cargar XLSB</span>
+            </div>
+            
+            <div class="flex-1 h-0.5 bg-neutral-200 mx-4"></div>
+            
+            <!-- Paso 2 -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-400 font-bold">
+                    2
+                </div>
+                <span class="text-sm font-medium text-neutral-500 hidden sm:inline">Fecha</span>
+            </div>
+            
+            <div class="flex-1 h-0.5 bg-neutral-200 mx-4"></div>
+            
+            <!-- Paso 3 -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-400 font-bold">
+                    3
+                </div>
+                <span class="text-sm font-medium text-neutral-500 hidden sm:inline">Procesar</span>
+            </div>
+            
+            <div class="flex-1 h-0.5 bg-neutral-200 mx-4"></div>
+            
+            <!-- Paso 4 -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-400 font-bold">
+                    4
+                </div>
+                <span class="text-sm font-medium text-neutral-500 hidden sm:inline">Resultados</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload Area -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 mb-6 shadow-card">
+        <h3 class="text-xl font-bold text-neutral-900 mb-6">Selecciona el archivo Anexo 1 (.xlsb)</h3>
+        
+        <!-- Drop Zone -->
+        <div id="dropzone" class="border-2 border-dashed border-neutral-300 rounded-2xl p-12 text-center hover:border-blue-500 hover:bg-blue-50/30 transition-smooth cursor-pointer">
+            <input type="file" id="fileInput" class="hidden" accept=".xlsb">
+            
+            <div id="dropzone-content">
+                <div class="mb-6">
+                    <div class="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-feather="upload-cloud" class="w-10 h-10 text-blue-600"></i>
+                    </div>
+                </div>
+                <p class="text-lg font-semibold text-neutral-900 mb-2">
+                    Arrastra tu archivo Anexo 1 aquí
+                </p>
+                <p class="text-sm text-neutral-600 mb-1">
+                    o <span class="text-blue-600 font-semibold hover:text-blue-700">haz clic para seleccionar</span>
+                </p>
+                <p class="text-xs text-neutral-500 mt-4">
+                    Solo archivos <strong>.xlsb</strong> | Tamaño máximo: 10 MB
+                </p>
+            </div>
+            
+            <!-- File Preview -->
+            <div id="file-preview" class="hidden">
+                <div class="bg-neutral-50 rounded-xl p-6 border border-neutral-200">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <i data-feather="file-text" class="w-7 h-7 text-green-600"></i>
+                        </div>
+                        <div class="flex-1 text-left min-w-0">
+                            <p id="file-name" class="text-sm font-semibold text-neutral-900 truncate"></p>
+                            <p id="file-size" class="text-xs text-neutral-500 mt-1"></p>
+                        </div>
+                        <button id="remove-file" class="w-10 h-10 bg-red-50 hover:bg-red-100 rounded-xl flex items-center justify-center text-red-600 transition-smooth flex-shrink-0">
+                            <i data-feather="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fecha del Acuerdo -->
+        <div id="fecha-section" class="hidden mt-6">
+            <label class="block text-sm font-semibold text-neutral-900 mb-3">
+                <i data-feather="calendar" class="w-4 h-4 inline mr-2 text-blue-600"></i>
+                Fecha del Acuerdo (Opcional)
+            </label>
+            <input type="date" 
+                   id="fecha-acuerdo" 
+                   class="w-full sm:w-auto px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-smooth">
+            <p class="text-xs text-neutral-500 mt-2">
+                💡 Si no tienes la fecha todavía, déjalo vacío
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+            <button id="validate-btn" class="hidden px-6 py-3 bg-neutral-100 text-neutral-700 rounded-xl hover:bg-neutral-200 transition-smooth font-semibold inline-flex items-center justify-center">
+                <i data-feather="check-square" class="w-5 h-5 mr-2"></i>
+                Validar Archivo
+            </button>
+            <button id="process-btn" class="hidden px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-smooth font-semibold inline-flex items-center justify-center shadow-md">
+                <i data-feather="play" class="w-5 h-5 mr-2"></i>
+                Consolidar Servicios
+            </button>
+        </div>
+    </div>
+    
+    <!-- Información -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 shadow-card">
+        <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                <i data-feather="info" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-neutral-900">Información del Proceso</h3>
+        </div>
+        
+        <div class="grid sm:grid-cols-2 gap-6">
+            <!-- Qué hace -->
+            <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-100">
+                <h4 class="font-semibold text-neutral-900 mb-4 flex items-center">
+                    <i data-feather="check-circle" class="w-4 h-4 mr-2 text-blue-600"></i>
+                    ¿Qué hace este módulo?
+                </h4>
+                <ul class="space-y-2 text-sm text-neutral-600">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span>Lee archivos XLSB con múltiples sedes</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span>Extrae todos los servicios automáticamente</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span>Genera código único por sede (código-sede)</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span>Crea Excel con formato POSITIVA</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Requisitos -->
+            <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-100">
+                <h4 class="font-semibold text-neutral-900 mb-4 flex items-center">
+                    <i data-feather="alert-circle" class="w-4 h-4 mr-2 text-blue-600"></i>
+                    Requisitos del Archivo
+                </h4>
+                <ul class="space-y-2 text-sm text-neutral-600">
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span><strong>Formato:</strong> Debe ser .xlsb (no .xlsx)</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span><strong>Hoja:</strong> "TARIFAS DE SERV"</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span><strong>Estructura:</strong> Anexo 1 estándar</span>
+                    </li>
+                    <li class="flex items-start space-x-2">
+                        <span class="text-blue-600 mt-1">•</span>
+                        <span><strong>Tamaño:</strong> Máximo 10 MB</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Loading Modal -->
+<div id="loading-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="text-center">
+            <!-- Spinner -->
+            <div class="mb-6">
+                <div class="inline-block relative">
+                    <div class="w-16 h-16 border-4 border-neutral-200 border-t-blue-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i data-feather="layers" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Consolidando servicios</h3>
+            <p class="text-sm text-neutral-600 mb-6" id="loading-message">Procesando archivo XLSB...</p>
+            
+            <!-- Progress Bar -->
+            <div class="bg-neutral-100 rounded-full h-3 overflow-hidden mb-3">
+                <div id="progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500 rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-xs font-semibold text-neutral-700" id="progress-text">0%</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/modules/consolidador.js') }}"></script>
+{% endblock %}

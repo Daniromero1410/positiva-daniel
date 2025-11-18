@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Welcome Section -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-neutral-900 mb-2">Bienvenido al Sistema</h2>
+        <p class="text-neutral-600">Panel de control y estadísticas generales</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Card 1 -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="file-text" class="w-6 h-6 text-blue-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ stats.total_archivos }}</p>
+            <p class="text-sm text-neutral-500 font-medium">Archivos Procesados</p>
+        </div>
+        
+        <!-- Card 2 -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="activity" class="w-6 h-6 text-purple-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ stats.procesos_activos }}</p>
+            <p class="text-sm text-neutral-500 font-medium">Procesos Recientes</p>
+        </div>
+        
+        <!-- Card 3 -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="database" class="w-6 h-6 text-green-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ "{:,}".format(stats.registros_totales) }}</p>
+            <p class="text-sm text-neutral-500 font-medium">Registros Totales</p>
+        </div>
+        
+        <!-- Card 4 -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-positiva-100 to-positiva-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="check-circle" class="w-6 h-6 text-positiva-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ stats.tasa_exito }}%</p>
+            <p class="text-sm text-neutral-500 font-medium">Tasa de Éxito</p>
+        </div>
+        
+    </div>
+
+    <!-- Módulos Grid -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-neutral-900">Módulos Disponibles</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Módulo Especialidades -->
+            <a href="{{ url_for('especialidades.index') }}" 
+               class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-positiva-100 to-positiva-50 rounded-xl flex items-center justify-center">
+                        <i data-feather="clipboard" class="w-7 h-7 text-positiva-600"></i>
+                    </div>
+                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center group-hover:bg-positiva-500 transition-smooth">
+                        <i data-feather="arrow-right" class="w-4 h-4 text-neutral-400 group-hover:text-white"></i>
+                    </div>
+                </div>
+                <h4 class="text-lg font-semibold text-neutral-900 mb-2">Asignación de Especialidades</h4>
+                <p class="text-sm text-neutral-600 mb-4 line-clamp-2">
+                    Asigna automáticamente especialidades médicas a estudios de laboratorio e imágenes diagnósticas.
+                </p>
+                <div class="flex items-center text-sm text-positiva-600 font-medium">
+                    <span>Iniciar módulo</span>
+                </div>
+            </a>
+            
+            <!-- Módulo Consolidador -->
+            <a href="{{ url_for('consolidador.index') }}" 
+               class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth group">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
+                        <i data-feather="layers" class="w-7 h-7 text-blue-600"></i>
+                    </div>
+                    <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-smooth">
+                        <i data-feather="arrow-right" class="w-4 h-4 text-neutral-400 group-hover:text-white"></i>
+                    </div>
+                </div>
+                <h4 class="text-lg font-semibold text-neutral-900 mb-2">Consolidador Anexo 1</h4>
+                <p class="text-sm text-neutral-600 mb-4 line-clamp-2">
+                    Consolida servicios médicos de múltiples sedes desde archivos XLSB del Anexo 1.
+                </p>
+                <div class="flex items-center text-sm text-blue-600 font-medium">
+                    <span>Iniciar módulo</span>
+                </div>
+            </a>
+            
+            <!-- Módulo Reportes -->
+            <div class="card-gradient rounded-2xl border border-neutral-100 p-6 opacity-60">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-neutral-100 rounded-xl flex items-center justify-center">
+                        <i data-feather="file-text" class="w-7 h-7 text-neutral-400"></i>
+                    </div>
+                    <span class="text-xs bg-neutral-100 text-neutral-500 px-3 py-1 rounded-lg font-medium">Próximamente</span>
+                </div>
+                <h4 class="text-lg font-semibold text-neutral-900 mb-2">Generación de Reportes</h4>
+                <p class="text-sm text-neutral-600 mb-4 line-clamp-2">
+                    Genera reportes personalizados con análisis detallados de los datos procesados.
+                </p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Actividad Reciente -->
+    {% if actividad_reciente %}
+    <div>
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-neutral-900">Actividad Reciente</h3>
+            <button class="text-sm text-positiva-600 hover:text-positiva-700 font-medium">Ver todo</button>
+        </div>
+        
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6">
+            <div class="space-y-4">
+                {% for actividad in actividad_reciente %}
+                <div class="flex items-start space-x-4 pb-4 border-b border-neutral-100 last:border-0 last:pb-0">
+                    <div class="w-10 h-10 {% if actividad.exito %}bg-green-50{% else %}bg-red-50{% endif %} rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i data-feather="{% if actividad.exito %}check-circle{% else %}alert-circle{% endif %}" 
+                           class="w-5 h-5 {% if actividad.exito %}text-green-600{% else %}text-red-600{% endif %}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-neutral-900 mb-1">
+                            {{ actividad.archivo }}
+                        </p>
+                        <p class="text-xs text-neutral-500">
+                            {{ actividad.tiempo_relativo }} · {{ actividad.registros }} registros · {{ actividad.modulo }}
+                        </p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        {% if actividad.archivo_salida %}
+                        <a href="{{ url_for('consolidador.download_file', filename=actividad.archivo_salida) }}" 
+                           class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 transition-smooth"
+                           title="Descargar archivo">
+                            <i data-feather="download" class="w-4 h-4"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

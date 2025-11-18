@@ -1,0 +1,14 @@
+data/stats.json
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.log
