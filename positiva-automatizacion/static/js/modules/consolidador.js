@@ -3,75 +3,114 @@
  */
 
 let selectedFile = null;
+let dropzone, fileInput, dropzoneContent, filePreview, fileName, fileSize;
+let removeFileBtn, validateBtn, processBtn, fechaSection, fechaAcuerdo;
+let loadingModal, loadingMessage, progressBar, progressText;
 
-// Referencias DOM
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('fileInput');
-const dropzoneContent = document.getElementById('dropzone-content');
-const filePreview = document.getElementById('file-preview');
-const fileName = document.getElementById('file-name');
-const fileSize = document.getElementById('file-size');
-const removeFileBtn = document.getElementById('remove-file');
-const validateBtn = document.getElementById('validate-btn');
-const processBtn = document.getElementById('process-btn');
-const fechaSection = document.getElementById('fecha-section');
-const fechaAcuerdo = document.getElementById('fecha-acuerdo');
-const loadingModal = document.getElementById('loading-modal');
-const loadingMessage = document.getElementById('loading-message');
-const progressBar = document.getElementById('progress-bar');
-const progressText = document.getElementById('progress-text');
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    // Referencias DOM
+    dropzone = document.getElementById('dropzone');
+    fileInput = document.getElementById('fileInput');
+    dropzoneContent = document.getElementById('dropzone-content');
+    filePreview = document.getElementById('file-preview');
+    fileName = document.getElementById('file-name');
+    fileSize = document.getElementById('file-size');
+    removeFileBtn = document.getElementById('remove-file');
+    validateBtn = document.getElementById('validate-btn');
+    processBtn = document.getElementById('process-btn');
+    fechaSection = document.getElementById('fecha-section');
+    fechaAcuerdo = document.getElementById('fecha-acuerdo');
+    loadingModal = document.getElementById('loading-modal');
+    loadingMessage = document.getElementById('loading-message');
+    progressBar = document.getElementById('progress-bar');
+    progressText = document.getElementById('progress-text');
 
-// Click en dropzone abre selector
-dropzone.addEventListener('click', () => {
-    if (!selectedFile) {
-        fileInput.click();
+    // Verificar que todos los elementos existen
+    if (!dropzone || !fileInput || !validateBtn || !processBtn) {
+        console.error('Error: No se pudieron encontrar todos los elementos necesarios');
+        return;
     }
+
+    // Inicializar event listeners
+    initializeEventListeners();
 });
 
-// Drag & Drop
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    dropzone.addEventListener(eventName, preventDefaults, false);
-});
+function initializeEventListeners() {
+    // Click en dropzone abre selector
+    dropzone.addEventListener('click', () => {
+        if (!selectedFile) {
+            fileInput.click();
+        }
+    });
+
+    // Drag & Drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // Highlight
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+            dropzone.classList.add('border-blue-500', 'bg-blue-50');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+            dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+        }, false);
+    });
+
+    // Handle drop
+    dropzone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    // Handle file selection
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // Remover archivo
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetUpload();
+    });
+
+    // Validar estructura
+    validateBtn.addEventListener('click', validarArchivo);
+
+    // Procesar archivo
+    processBtn.addEventListener('click', procesarArchivo);
+}
 
 function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
 }
 
-// Highlight
-['dragenter', 'dragover'].forEach(eventName => {
-    dropzone.addEventListener(eventName, () => {
-        dropzone.classList.add('border-blue-500', 'bg-blue-50');
-    }, false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-    dropzone.addEventListener(eventName, () => {
-        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
-    }, false);
-});
-
-// Handle drop
-dropzone.addEventListener('drop', (e) => {
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-        handleFile(files[0]);
+// Helper para mostrar notificaciones de forma segura
+function safeShowNotification(message, type) {
+    if (typeof showNotification === 'function') {
+        showNotification(message, type);
+    } else {
+        console.error('showNotification no está disponible:', message);
+        alert(message);
     }
-});
-
-// Handle file selection
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-        handleFile(e.target.files[0]);
-    }
-});
+}
 
 // Procesar archivo
 function handleFile(file) {
     const validation = validateFile(file);
-    
+
     if (!validation.valid) {
-        showNotification(validation.error, 'error');
+        safeShowNotification(validation.error, 'error');
         return;
     }
     
@@ -90,14 +129,10 @@ function handleFile(file) {
     validateBtn.classList.remove('hidden');
     processBtn.classList.remove('hidden');
     
-    feather.replace();
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
 }
-
-// Remover archivo
-removeFileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    resetUpload();
-});
 
 function resetUpload() {
     selectedFile = null;
@@ -143,54 +178,54 @@ function formatFileSize(bytes) {
 }
 
 // Validar estructura
-validateBtn.addEventListener('click', async () => {
+async function validarArchivo() {
     if (!selectedFile) return;
-    
+
     showLoading('Validando archivo XLSB...');
     updateProgress(50, 'Analizando estructura...');
-    
+
     const formData = new FormData();
     formData.append('file', selectedFile);
-    
+
     try {
         const response = await fetch('/modulos/consolidador/validar', {
             method: 'POST',
             body: formData
         });
-        
+
         const result = await response.json();
         hideLoading();
-        
+
         if (response.ok) {
             const allValid = result.validaciones.every(v => v.valida);
-            
+
             if (allValid) {
-                let detalles = result.validaciones.map(val => 
+                let detalles = result.validaciones.map(val =>
                     `<br>✓ ${val.hoja}: ${val.registros} filas`
                 ).join('');
-                
-                showNotification(`✅ Archivo XLSB válido${detalles}`, 'success');
+
+                safeShowNotification(`✅ Archivo XLSB válido${detalles}`, 'success');
             } else {
                 let errores = result.validaciones
                     .filter(v => !v.valida)
                     .map(val => `<br>✗ ${val.hoja}: ${val.error}`)
                     .join('');
-                
-                showNotification(`❌ Errores encontrados:${errores}`, 'error');
+
+                safeShowNotification(`❌ Errores encontrados:${errores}`, 'error');
             }
         } else {
-            showNotification(result.error || 'Error al validar', 'error');
+            safeShowNotification(result.error || 'Error al validar', 'error');
         }
-        
+
     } catch (error) {
         hideLoading();
-        showNotification('Error de conexión al validar archivo', 'error');
+        safeShowNotification('Error de conexión al validar archivo', 'error');
         console.error(error);
     }
-});
+}
 
 // Procesar archivo
-processBtn.addEventListener('click', async () => {
+async function procesarArchivo() {
     if (!selectedFile) return;
     
     showLoading('Iniciando consolidación...');
@@ -222,7 +257,7 @@ processBtn.addEventListener('click', async () => {
             hideLoading();
             
             if (response.ok) {
-                showNotification('✅ Consolidación completada exitosamente', 'success');
+                safeShowNotification('✅ Consolidación completada exitosamente', 'success');
                 
                 setTimeout(() => {
                     window.location.href = '/modulos/consolidador/resultados?' + new URLSearchParams({
@@ -235,17 +270,16 @@ processBtn.addEventListener('click', async () => {
                 }, 1000);
             } else {
                 // Mostrar error específico del servidor
-                showNotification(result.error || 'Error desconocido al procesar el archivo', 'error');
+                safeShowNotification(result.error || 'Error desconocido al procesar el archivo', 'error');
             }
         }, 500);
         
     } catch (error) {
         hideLoading();
-        showNotification('Error de conexión. Revisa la consola para más detalles.', 'error');
+        safeShowNotification('Error de conexión. Revisa la consola para más detalles.', 'error');
         console.error('Error en la petición fetch:', error);
     }
-});
-
+}
 
 // Loading modal
 function showLoading(message) {
