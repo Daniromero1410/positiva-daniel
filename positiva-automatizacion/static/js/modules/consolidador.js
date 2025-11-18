@@ -7,8 +7,10 @@ let dropzone, fileInput, dropzoneContent, filePreview, fileName, fileSize;
 let removeFileBtn, validateBtn, processBtn, fechaSection, fechaAcuerdo;
 let loadingModal, loadingMessage, progressBar, progressText;
 
-// Esperar a que el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', function() {
+// Función de inicialización
+function initConsolidador() {
+    console.log('Iniciando consolidador...');
+
     // Referencias DOM
     dropzone = document.getElementById('dropzone');
     fileInput = document.getElementById('fileInput');
@@ -26,15 +28,46 @@ document.addEventListener('DOMContentLoaded', function() {
     progressBar = document.getElementById('progress-bar');
     progressText = document.getElementById('progress-text');
 
-    // Verificar que todos los elementos existen
-    if (!dropzone || !fileInput || !validateBtn || !processBtn) {
-        console.error('Error: No se pudieron encontrar todos los elementos necesarios');
+    // Verificar que todos los elementos existen con mensajes detallados
+    const elementos = {
+        dropzone, fileInput, dropzoneContent, filePreview, fileName, fileSize,
+        removeFileBtn, validateBtn, processBtn, fechaSection, fechaAcuerdo,
+        loadingModal, loadingMessage, progressBar, progressText
+    };
+
+    let faltantes = [];
+    for (let [nombre, elemento] of Object.entries(elementos)) {
+        if (!elemento) {
+            faltantes.push(nombre);
+            console.error(`Elemento faltante: ${nombre}`);
+        }
+    }
+
+    if (faltantes.length > 0) {
+        console.error('No se pudieron encontrar estos elementos:', faltantes);
+        alert('Error: Algunos elementos de la página no se cargaron correctamente. Recarga la página.');
         return;
     }
 
+    console.log('Todos los elementos DOM encontrados correctamente');
+
     // Inicializar event listeners
-    initializeEventListeners();
-});
+    try {
+        initializeEventListeners();
+        console.log('Event listeners inicializados correctamente');
+    } catch (error) {
+        console.error('Error al inicializar event listeners:', error);
+        alert('Error al inicializar el consolidador: ' + error.message);
+    }
+}
+
+// Esperar a que el DOM esté completamente cargado
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initConsolidador);
+} else {
+    // DOM ya está cargado
+    initConsolidador();
+}
 
 function initializeEventListeners() {
     // Click en dropzone abre selector
