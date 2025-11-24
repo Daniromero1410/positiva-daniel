@@ -127,46 +127,151 @@
         </div>
     </div>
 
-    <!-- Actividad Reciente -->
-    {% if actividad_reciente %}
+    <!-- NUEVO: Explorador GoAnywhere -->
     <div>
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-xl font-bold text-neutral-900">Actividad Reciente</h3>
-            <button class="text-sm text-positiva-600 hover:text-positiva-700 font-medium">Ver todo</button>
+            <div class="flex items-center space-x-3">
+                <i data-feather="server" class="w-6 h-6 text-indigo-600"></i>
+                <h3 class="text-xl font-bold text-neutral-900">Explorador GoAnywhere</h3>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div id="connection-status" class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full" id="status-dot"></div>
+                    <span class="text-sm text-neutral-600" id="status-label">Desconectado</span>
+                </div>
+                <button onclick="conectarGoAnywhere()" id="connect-btn" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-smooth text-sm font-medium">
+                    <i data-feather="wifi" class="w-4 h-4 inline mr-1"></i>
+                    Conectar
+                </button>
+            </div>
         </div>
         
         <div class="card-gradient rounded-2xl border border-neutral-100 p-6">
-            <div class="space-y-4">
-                {% for actividad in actividad_reciente %}
-                <div class="flex items-start space-x-4 pb-4 border-b border-neutral-100 last:border-0 last:pb-0">
-                    <div class="w-10 h-10 {% if actividad.exito %}bg-green-50{% else %}bg-red-50{% endif %} rounded-xl flex items-center justify-center flex-shrink-0">
-                        <i data-feather="{% if actividad.exito %}check-circle{% else %}alert-circle{% endif %}" 
-                           class="w-5 h-5 {% if actividad.exito %}text-green-600{% else %}text-red-600{% endif %}"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-neutral-900 mb-1">
-                            {{ actividad.archivo }}
-                        </p>
-                        <p class="text-xs text-neutral-500">
-                            {{ actividad.tiempo_relativo }} · {{ actividad.registros }} registros · {{ actividad.modulo }}
-                        </p>
-                    </div>
-                    <div class="flex-shrink-0">
-                        {% if actividad.archivo_salida %}
-                        <a href="{{ url_for('consolidador.download_file', filename=actividad.archivo_salida) }}" 
-                           class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 hover:bg-blue-100 rounded-lg text-blue-600 transition-smooth"
-                           title="Descargar archivo">
-                            <i data-feather="download" class="w-4 h-4"></i>
-                        </a>
-                        {% endif %}
+            
+            <!-- Buscador NUEVO -->
+            <div id="search-container" class="mb-4 hidden relative">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="search-input"
+                        placeholder="Buscar archivos en todas las carpetas..."
+                        class="w-full pl-12 pr-32 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-smooth"
+                        autocomplete="off"
+                    >
+                    <i data-feather="search" class="w-5 h-5 text-neutral-400 absolute left-4 top-1/2 transform -translate-y-1/2"></i>
+                    
+                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                        <button onclick="limpiarBusqueda()" id="clear-search-btn" class="hidden px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 rounded-lg text-xs font-medium transition-smooth">
+                            <i data-feather="x" class="w-3 h-3 inline mr-1"></i>
+                            Limpiar
+                        </button>
+                        <button onclick="ejecutarBusqueda()" class="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-xs font-medium transition-smooth">
+                            Buscar
+                        </button>
                     </div>
                 </div>
-                {% endfor %}
+                
+                <!-- Sugerencias de autocompletado -->
+                <div id="suggestions-container" class="absolute z-10 w-full mt-2 bg-white border border-neutral-200 rounded-xl shadow-lg hidden max-h-64 overflow-y-auto">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+                
+                <!-- Resultados de búsqueda -->
+                <div id="search-results" class="mt-4 hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <i data-feather="search" class="w-4 h-4 text-indigo-600"></i>
+                            <span class="text-sm font-semibold text-neutral-900">Resultados de búsqueda:</span>
+                            <span class="text-xs text-neutral-500" id="search-count">0 resultados</span>
+                        </div>
+                        <button onclick="volverANavegacion()" class="text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                            <i data-feather="arrow-left" class="w-3 h-3 inline mr-1"></i>
+                            Volver a navegación
+                        </button>
+                    </div>
+                    <div id="search-results-list" class="space-y-2">
+                        <!-- Los resultados se insertarán aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Breadcrumb de navegación -->
+            <div id="path-breadcrumb" class="bg-neutral-50 rounded-xl p-4 border border-neutral-200 mb-4 hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="folder-open" class="w-4 h-4 text-indigo-600"></i>
+                        <span class="text-sm font-semibold text-neutral-900">Ruta actual:</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="irRaiz()" class="px-3 py-1.5 bg-white hover:bg-neutral-50 rounded-lg transition-smooth text-xs font-medium border border-neutral-200">
+                            <i data-feather="home" class="w-3 h-3 inline mr-1"></i>
+                            Inicio
+                        </button>
+                        <button onclick="refrescarDirectorio()" class="px-3 py-1.5 bg-white hover:bg-neutral-50 rounded-lg transition-smooth text-xs font-medium border border-neutral-200">
+                            <i data-feather="refresh-cw" class="w-3 h-3 inline mr-1"></i>
+                            Refrescar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Breadcrumb interactivo -->
+                <div id="breadcrumb-items" class="flex items-center flex-wrap gap-2">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+            
+            <!-- Estado inicial: No conectado -->
+            <div id="not-connected-state" class="text-center py-12">
+                <i data-feather="server" class="w-16 h-16 text-neutral-300 mx-auto mb-4"></i>
+                <p class="text-neutral-600 mb-4">No estás conectado al servidor GoAnywhere</p>
+                <button onclick="conectarGoAnywhere()" class="px-6 py-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-smooth font-semibold">
+                    <i data-feather="wifi" class="w-5 h-5 inline mr-2"></i>
+                    Conectar Ahora
+                </button>
+            </div>
+            
+            <!-- Loading -->
+            <div id="loading-files" class="text-center py-12 hidden">
+                <div class="inline-block w-12 h-12 border-4 border-neutral-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+                <p class="text-neutral-600" id="loading-text">Cargando archivos...</p>
+            </div>
+            
+            <!-- Lista de archivos -->
+            <div id="files-list" class="space-y-2 hidden">
+                <!-- Los archivos se insertarán aquí dinámicamente -->
+            </div>
+            
+            <!-- Empty state -->
+            <div id="empty-state" class="text-center py-12 hidden">
+                <i data-feather="folder" class="w-16 h-16 text-neutral-300 mx-auto mb-4"></i>
+                <p class="text-neutral-600">Este directorio está vacío</p>
             </div>
         </div>
     </div>
-    {% endif %}
 
 </div>
 
+<!-- Modal de Descarga -->
+<div id="download-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="text-center">
+            <div class="mb-6">
+                <div class="inline-block relative">
+                    <div class="w-16 h-16 border-4 border-neutral-200 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i data-feather="download" class="w-6 h-6 text-indigo-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Descargando archivo</h3>
+            <p class="text-sm text-neutral-600 mb-6" id="download-message">Preparando descarga...</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard_goanywhere.js') }}"></script>
 {% endblock %}

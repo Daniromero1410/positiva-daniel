@@ -21,6 +21,10 @@ def create_app(config_name='default'):
     from modules.consolidador.routes import consolidador_bp
     app.register_blueprint(consolidador_bp, url_prefix='/modulos/consolidador')
     
+    # IMPORTANTE: Registrar módulo Consolidador T25
+    from modules.consolidador_t25.routes import consolidador_t25_bp
+    app.register_blueprint(consolidador_t25_bp, url_prefix='/modulos/consolidador-t25')
+    
     # Ruta principal
     @app.route('/')
     def index():

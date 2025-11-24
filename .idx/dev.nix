@@ -10,6 +10,7 @@ let
     openpyxl
     python-dotenv
     pyxlsb
+    paramiko
   ]);
 in
 {

@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Resultados - Consolidador T25{% endblock %}
+{% block page_title %}Resultados del Procesamiento{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2">
+            <li class="inline-flex items-center">
+                <a href="{{ url_for('dashboard') }}" class="text-neutral-500 hover:text-positiva-600 inline-flex items-center text-sm transition-smooth">
+                    <i data-feather="home" class="w-4 h-4 mr-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
+                    <a href="{{ url_for('consolidador_t25.index') }}" class="text-neutral-500 hover:text-positiva-600 text-sm transition-smooth">
+                        Consolidador T25
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
+                    <span class="text-sm text-neutral-700 font-medium">Resultados</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Success Banner -->
+    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-card">
+        <div class="flex items-start space-x-4">
+            <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                <i data-feather="check-circle" class="w-8 h-8 text-green-600"></i>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold text-green-900 mb-2">Procesamiento Completado Exitosamente</h2>
+                <p class="text-green-700">
+                    El archivo T25 ha sido procesado correctamente y está listo para descargar.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        
+        <!-- Total Registros -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth shadow-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="database" class="w-6 h-6 text-indigo-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ "{:,}".format(stats.total_registros) }}</p>
+            <p class="text-sm text-neutral-500 font-medium">Registros Procesados</p>
+        </div>
+        
+        <!-- Tiempo -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth shadow-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="clock" class="w-6 h-6 text-purple-600"></i>
+                </div>
+            </div>
+            <p class="text-3xl font-bold text-neutral-900 mb-1">{{ "%.1f"|format(stats.tiempo_ejecucion) }}s</p>
+            <p class="text-sm text-neutral-500 font-medium">Tiempo de Proceso</p>
+        </div>
+        
+        <!-- Origen -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth shadow-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="server" class="w-6 h-6 text-green-600"></i>
+                </div>
+            </div>
+            <p class="text-xl font-bold text-neutral-900 mb-1">GoAnywhere</p>
+            <p class="text-sm text-neutral-500 font-medium">Origen del Archivo</p>
+        </div>
+        
+    </div>
+    
+    <!-- Action Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mb-6">
+        
+        <!-- Descargar Resultado -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-8 shadow-card">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i data-feather="download" class="w-10 h-10 text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-neutral-900 mb-3">Descargar Consolidado</h3>
+                <p class="text-sm text-neutral-600 mb-6">
+                    Descarga el archivo Excel consolidado con formato POSITIVA
+                </p>
+                <a href="{{ url_for('consolidador_t25.download_file', filename=stats.archivo_salida) }}" 
+                   class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:from-indigo-600 hover:to-indigo-700 transition-smooth font-semibold shadow-md">
+                    <i data-feather="download" class="w-5 h-5 mr-2"></i>
+                    Descargar Excel
+                </a>
+            </div>
+        </div>
+        
+        <!-- Procesar Otro -->
+        <div class="card-gradient rounded-2xl border border-neutral-100 p-8 shadow-card">
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-100 to-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <i data-feather="refresh-cw" class="w-10 h-10 text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-neutral-900 mb-3">Procesar Otro Archivo</h3>
+                <p class="text-sm text-neutral-600 mb-6">
+                    Regresa al explorador para procesar otro archivo T25
+                </p>
+                <a href="{{ url_for('consolidador_t25.index') }}" 
+                   class="inline-flex items-center justify-center px-8 py-3 bg-neutral-100 text-neutral-700 rounded-xl hover:bg-neutral-200 transition-smooth font-semibold">
+                    <i data-feather="arrow-left" class="w-5 h-5 mr-2"></i>
+                    Nueva Conexión
+                </a>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Información del Archivo -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 shadow-card">
+        <h3 class="text-xl font-bold text-neutral-900 mb-6 flex items-center">
+            <i data-feather="info" class="w-6 h-6 text-indigo-600 mr-3"></i>
+            Detalles del Consolidado
+        </h3>
+        
+        <div class="bg-neutral-50 rounded-xl p-6 border border-neutral-100">
+            <div class="grid sm:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold text-neutral-900 mb-3">Información del Proceso:</h4>
+                    <ul class="space-y-2 text-sm text-neutral-600">
+                        <li>📊 <strong>Total registros:</strong> {{ "{:,}".format(stats.total_registros) }}</li>
+                        <li>⏱️ <strong>Tiempo:</strong> {{ "%.2f"|format(stats.tiempo_ejecucion) }} segundos</li>
+                        <li>📦 <strong>Archivo:</strong> {{ stats.archivo_salida }}</li>
+                        <li>🌐 <strong>Origen:</strong> GoAnywhere SFTP</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-neutral-900 mb-3">Formato del Excel:</h4>
+                    <ul class="space-y-2 text-sm text-neutral-600">
+                        <li>✓ Encabezados con formato POSITIVA</li>
+                        <li>✓ Bordes en todas las celdas</li>
+                        <li>✓ Columnas con ancho ajustado</li>
+                        <li>✓ Listo para importar a sistemas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+            <p class="text-sm text-indigo-800">
+                <i data-feather="check-circle" class="w-4 h-4 inline mr-2"></i>
+                <strong>Formato:</strong> El archivo generado cumple con el formato estándar de POSITIVA y está listo para ser importado a los sistemas corporativos.
+            </p>
+        </div>
+    </div>
+    
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Reinicializar iconos de Feather
+    feather.replace();
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Explorador - Consolidador T25{% endblock %}
+{% block page_title %}Explorador de Archivos GoAnywhere{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2">
+            <li class="inline-flex items-center">
+                <a href="{{ url_for('dashboard') }}" class="text-neutral-500 hover:text-positiva-600 inline-flex items-center text-sm transition-smooth">
+                    <i data-feather="home" class="w-4 h-4 mr-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
+                    <a href="{{ url_for('consolidador_t25.index') }}" class="text-neutral-500 hover:text-positiva-600 text-sm transition-smooth">
+                        Consolidador T25
+                    </a>
+                </div>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
+                    <span class="text-sm text-neutral-700 font-medium">Explorador</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+    
+    <!-- Header con estado -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6 shadow-card">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <i data-feather="wifi" class="w-6 h-6 text-green-600"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-neutral-900">Conectado a GoAnywhere</h2>
+                    <p class="text-sm text-neutral-600">mft.positiva.gov.co:2243</p>
+                </div>
+            </div>
+            <button onclick="desconectarYVolver()" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-smooth text-sm font-medium">
+                <i data-feather="log-out" class="w-4 h-4 inline mr-1"></i>
+                Desconectar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Navegación actual -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6 shadow-card">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+                <i data-feather="folder" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-bold text-neutral-900">Directorio Actual</h3>
+            </div>
+            <button onclick="refrescarDirectorio()" class="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-smooth text-sm">
+                <i data-feather="refresh-cw" class="w-4 h-4 inline mr-1"></i>
+                Refrescar
+            </button>
+        </div>
+        
+        <!-- Breadcrumb de navegación -->
+        <div id="path-breadcrumb" class="flex items-center space-x-2 bg-neutral-50 rounded-lg p-3 border border-neutral-200">
+            <i data-feather="folder-open" class="w-4 h-4 text-neutral-400"></i>
+            <span class="text-sm font-mono text-neutral-700">/</span>
+        </div>
+        
+        <!-- Botones de navegación -->
+        <div class="flex space-x-3 mt-4">
+            <button onclick="subirNivel()" class="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-smooth text-sm font-medium">
+                <i data-feather="arrow-up" class="w-4 h-4 inline mr-1"></i>
+                Subir nivel
+            </button>
+            <button onclick="irRaiz()" class="px-4 py-2 bg-neutral-100 hover:bg-neutral-200 rounded-lg transition-smooth text-sm font-medium">
+                <i data-feather="home" class="w-4 h-4 inline mr-1"></i>
+                Ir a raíz
+            </button>
+        </div>
+    </div>
+    
+    <!-- Lista de archivos -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 shadow-card">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-3">
+                <i data-feather="list" class="w-5 h-5 text-indigo-600"></i>
+                <h3 class="text-lg font-bold text-neutral-900">Archivos y Carpetas</h3>
+            </div>
+            <span id="total-items" class="text-sm text-neutral-600">0 elementos</span>
+        </div>
+        
+        <!-- Loading -->
+        <div id="loading-files" class="text-center py-12 hidden">
+            <div class="inline-block w-12 h-12 border-4 border-neutral-200 border-t-indigo-500 rounded-full animate-spin mb-4"></div>
+            <p class="text-neutral-600">Cargando archivos...</p>
+        </div>
+        
+        <!-- Lista -->
+        <div id="files-list" class="space-y-2">
+            <!-- Los archivos se insertarán aquí dinámicamente -->
+        </div>
+        
+        <!-- Empty state -->
+        <div id="empty-state" class="text-center py-12 hidden">
+            <i data-feather="folder" class="w-16 h-16 text-neutral-300 mx-auto mb-4"></i>
+            <p class="text-neutral-600">Este directorio está vacío</p>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Modal de Procesamiento -->
+<div id="processing-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="text-center">
+            <!-- Spinner -->
+            <div class="mb-6">
+                <div class="inline-block relative">
+                    <div class="w-16 h-16 border-4 border-neutral-200 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i data-feather="server" class="w-6 h-6 text-indigo-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Procesando archivo</h3>
+            <p class="text-sm text-neutral-600 mb-6" id="processing-message">Descargando desde GoAnywhere...</p>
+            
+            <!-- Progress Bar -->
+            <div class="bg-neutral-100 rounded-full h-3 overflow-hidden mb-3">
+                <div id="processing-progress" class="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-all duration-500 rounded-full" style="width: 0%"></div>
+            </div>
+            <p class="text-xs font-semibold text-neutral-700" id="processing-percent">0%</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/modules/consolidador_t25.js') }}"></script>
+<script>
+    // Inicializar explorador al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        verificarConexion();
+        cargarDirectorioActual();
+    });
+</script>
+{% endblock %}

@@ -50,10 +50,21 @@
                     <!-- Consolidador -->
                     <li>
                         <a href="{{ url_for('consolidador.index') }}" 
-                           class="flex items-center px-3 py-2.5 rounded-xl transition-smooth hover:bg-neutral-50 group {% if request.endpoint and 'consolidador' in request.endpoint %}sidebar-active{% endif %}">
-                            <i data-feather="layers" class="w-5 h-5 {% if request.endpoint and 'consolidador' in request.endpoint %}text-white{% else %}text-neutral-400 group-hover:text-blue-500{% endif %}"></i>
-                            <span class="ml-3 text-sm font-medium {% if request.endpoint and 'consolidador' in request.endpoint %}text-white{% else %}text-neutral-700 group-hover:text-neutral-900{% endif %}">
+                           class="flex items-center px-3 py-2.5 rounded-xl transition-smooth hover:bg-neutral-50 group {% if request.endpoint and 'consolidador' in request.endpoint and 'consolidador_t25' not in request.endpoint %}sidebar-active{% endif %}">
+                            <i data-feather="layers" class="w-5 h-5 {% if request.endpoint and 'consolidador' in request.endpoint and 'consolidador_t25' not in request.endpoint %}text-white{% else %}text-neutral-400 group-hover:text-blue-500{% endif %}"></i>
+                            <span class="ml-3 text-sm font-medium {% if request.endpoint and 'consolidador' in request.endpoint and 'consolidador_t25' not in request.endpoint %}text-white{% else %}text-neutral-700 group-hover:text-neutral-900{% endif %}">
                                 Consolidador
+                            </span>
+                        </a>
+                    </li>
+                    
+                    <!-- NUEVO: Consolidador T25 -->
+                    <li>
+                        <a href="{{ url_for('consolidador_t25.index') }}" 
+                           class="flex items-center px-3 py-2.5 rounded-xl transition-smooth hover:bg-neutral-50 group {% if request.endpoint and 'consolidador_t25' in request.endpoint %}sidebar-active{% endif %}">
+                            <i data-feather="server" class="w-5 h-5 {% if request.endpoint and 'consolidador_t25' in request.endpoint %}text-white{% else %}text-neutral-400 group-hover:text-indigo-500{% endif %}"></i>
+                            <span class="ml-3 text-sm font-medium {% if request.endpoint and 'consolidador_t25' in request.endpoint %}text-white{% else %}text-neutral-700 group-hover:text-neutral-900{% endif %}">
+                                Consolidador T25
                             </span>
                         </a>
                     </li>
