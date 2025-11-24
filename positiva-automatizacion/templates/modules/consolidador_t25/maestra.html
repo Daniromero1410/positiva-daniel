@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Maestra{% endblock %}
+{% block page_title %}Gestión de Maestra{% endblock %}
+
+{% block content %}
+
+<div class="max-w-5xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <a href="{{ url_for('consolidador_t25.index') }}" class="text-neutral-400 hover:text-neutral-600">
+                        <i data-feather="arrow-left" class="w-5 h-5"></i>
+                    </a>
+                    <i data-feather="database" class="w-8 h-8 text-blue-600"></i>
+                    <h2 class="text-3xl font-bold text-neutral-900">Maestra de Contratos</h2>
+                </div>
+                <p class="text-neutral-600 ml-11">Administrar archivo maestra de contratos vigentes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado actual de la maestra -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Estado Actual</h3>
+        
+        {% if maestra %}
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-xl p-4 border border-neutral-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="file" class="w-5 h-5 text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-neutral-500">Archivo</p>
+                            <p class="text-sm font-semibold text-neutral-900">{{ maestra.filename }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 border border-neutral-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="calendar" class="w-5 h-5 text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-neutral-500">Última actualización</p>
+                            <p class="text-sm font-semibold text-neutral-900">{{ maestra.fecha_modificacion }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 border border-neutral-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="file-text" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-neutral-500">Total contratos</p>
+                            <p class="text-sm font-semibold text-neutral-900">{{ maestra.total_contratos }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl p-4 border border-neutral-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <i data-feather="heart" class="w-5 h-5 text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-neutral-500">Prestadores de salud</p>
+                            <p class="text-sm font-semibold text-neutral-900">{{ maestra.prestadores_salud }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button onclick="descargarMaestra()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-smooth text-sm font-medium">
+                    <i data-feather="download" class="w-4 h-4 inline mr-2"></i>
+                    Descargar Maestra Actual
+                </button>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i data-feather="alert-circle" class="w-12 h-12 text-yellow-500 mx-auto mb-3"></i>
+            <p class="text-neutral-600">No hay maestra cargada</p>
+            <p class="text-sm text-neutral-500 mt-1">Sube una maestra para comenzar</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Subir nueva maestra -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Actualizar Maestra</h3>
+        
+        <form id="form-subir-maestra" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">
+                    Archivo Maestra (.xlsb)
+                </label>
+                
+                <div class="relative">
+                    <input 
+                        type="file" 
+                        id="archivo-maestra" 
+                        accept=".xlsb"
+                        class="hidden"
+                        onchange="actualizarNombreArchivo(this)"
+                    >
+                    
+                    <div class="border-2 border-dashed border-neutral-300 rounded-xl p-6 text-center hover:border-blue-400 transition-smooth cursor-pointer"
+                         onclick="document.getElementById('archivo-maestra').click()">
+                        <i data-feather="upload-cloud" class="w-12 h-12 text-neutral-400 mx-auto mb-3"></i>
+                        <p class="text-sm text-neutral-600 mb-1" id="nombre-archivo">
+                            Haz clic para seleccionar archivo
+                        </p>
+                        <p class="text-xs text-neutral-500">
+                            Solo archivos .xlsb (Excel Binario)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-start space-x-2">
+                    <i data-feather="alert-triangle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                    <div class="text-sm text-yellow-800">
+                        <p class="font-semibold mb-1">Importante:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Se creará un backup de la maestra anterior</li>
+                            <li>La maestra debe tener la pestaña "CONTRATOS VIGENTES"</li>
+                            <li>Debe incluir la columna "TIPO DE PROVEEDOR"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <button 
+                type="submit" 
+                class="w-full px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-smooth font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                id="btn-subir"
+            >
+                <i data-feather="upload" class="w-5 h-5 inline mr-2"></i>
+                Subir y Actualizar Maestra
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Modal de progreso -->
+<div id="modal-progreso" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div class="text-center">
+            <div class="mb-6">
+                <div class="inline-block relative">
+                    <div class="w-16 h-16 border-4 border-neutral-200 border-t-blue-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i data-feather="upload" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Subiendo maestra</h3>
+            <p class="text-sm text-neutral-600" id="mensaje-progreso">Procesando archivo...</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function actualizarNombreArchivo(input) {
+    const nombreArchivo = document.getElementById('nombre-archivo');
+    
+    if (input.files.length > 0) {
+        nombreArchivo.textContent = input.files[0].name;
+    } else {
+        nombreArchivo.textContent = 'Haz clic para seleccionar archivo';
+    }
+}
+
+function descargarMaestra() {
+    window.location.href = '/modulos/consolidador-t25/maestra/descargar';
+}
+
+document.getElementById('form-subir-maestra').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const archivoInput = document.getElementById('archivo-maestra');
+    const btnSubir = document.getElementById('btn-subir');
+    const modal = document.getElementById('modal-progreso');
+    const mensajeProgreso = document.getElementById('mensaje-progreso');
+    
+    if (!archivoInput.files.length) {
+        showNotification('⚠️ Debes seleccionar un archivo', 'warning');
+        return;
+    }
+    
+    const archivo = archivoInput.files[0];
+    
+    // Validar extensión
+    if (!archivo.name.toLowerCase().endsWith('.xlsb')) {
+        showNotification('❌ El archivo debe ser formato .xlsb', 'error');
+        return;
+    }
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    mensajeProgreso.textContent = 'Subiendo archivo...';
+    btnSubir.disabled = true;
+    feather.replace();
+    
+    try {
+        const formData = new FormData();
+        formData.append('archivo', archivo);
+        
+        const response = await fetch('/modulos/consolidador-t25/maestra/subir', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        modal.classList.add('hidden');
+        btnSubir.disabled = false;
+        
+        if (data.success) {
+            showNotification('✅ Maestra actualizada exitosamente', 'success');
+            
+            // Recargar página después de 1 segundo
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+        
+    } catch (error) {
+        modal.classList.add('hidden');
+        btnSubir.disabled = false;
+        showNotification('❌ Error de conexión: ' + error.message, 'error');
+    }
+});
+</script>
+{% endblock %}

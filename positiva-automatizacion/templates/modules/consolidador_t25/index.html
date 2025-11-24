@@ -1,178 +1,264 @@
 {% extends 'base.html' %}
 
 {% block title %}Consolidador T25{% endblock %}
-{% block page_title %}Consolidador T25 con GoAnywhere{% endblock %}
+{% block page_title %}Consolidador T25{% endblock %}
 
 {% block content %}
 
 <div class="max-w-7xl mx-auto">
-    
-    <!-- Breadcrumb -->
-    <nav class="flex mb-6" aria-label="Breadcrumb">
-        <ol class="inline-flex items-center space-x-2">
-            <li class="inline-flex items-center">
-                <a href="{{ url_for('dashboard') }}" class="text-neutral-500 hover:text-positiva-600 inline-flex items-center text-sm transition-smooth">
-                    <i data-feather="home" class="w-4 h-4 mr-2"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li>
-                <div class="flex items-center">
-                    <i data-feather="chevron-right" class="w-4 h-4 text-neutral-400 mx-2"></i>
-                    <span class="text-sm text-neutral-700 font-medium">Consolidador T25</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
-    
+
     <!-- Header -->
-    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 mb-6 shadow-card">
-        <div class="flex items-start space-x-4">
-            <div class="w-16 h-16 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <i data-feather="server" class="w-8 h-8 text-indigo-600"></i>
-            </div>
-            <div class="flex-1">
-                <h2 class="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">Consolidador T25 con GoAnywhere</h2>
-                <p class="text-neutral-600 leading-relaxed">
-                    Conéctate al servidor <strong>GoAnywhere SFTP</strong>, navega por los directorios, 
-                    descarga archivos Excel T25 y procésalos automáticamente.
-                </p>
-            </div>
+    <div class="mb-8">
+        <div class="flex items-center space-x-3 mb-4">
+            <i data-feather="layers" class="w-8 h-8 text-indigo-600"></i>
+            <h2 class="text-3xl font-bold text-neutral-900">Consolidador T25</h2>
         </div>
+        <p class="text-neutral-600">Sistema automatizado para consolidar ANEXO 1 desde GoAnywhere</p>
     </div>
-    
-    <!-- Estado de Conexión -->
-    <div id="status-card" class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6 shadow-card hidden">
+
+    <!-- Estado de conexión -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-8">
         <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div id="status-icon" class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <i data-feather="wifi" class="w-6 h-6 text-green-600"></i>
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <i data-feather="server" class="w-6 h-6 text-indigo-600"></i>
                 </div>
                 <div>
-                    <p class="text-sm font-semibold text-neutral-900">Estado de Conexión</p>
-                    <p id="status-text" class="text-xs text-neutral-600">Conectado a GoAnywhere</p>
+                    <h3 class="text-lg font-semibold text-neutral-900">Conexión GoAnywhere</h3>
+                    <div class="flex items-center space-x-2 mt-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full" id="status-dot"></div>
+                        <span class="text-sm text-neutral-600" id="status-label">Desconectado</span>
+                    </div>
                 </div>
             </div>
-            <button onclick="desconectar()" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-smooth text-sm font-medium">
-                <i data-feather="log-out" class="w-4 h-4 inline mr-1"></i>
-                Desconectar
+            <button onclick="toggleConexion()" id="connect-btn" class="px-6 py-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-smooth font-semibold">
+                <i data-feather="wifi" class="w-5 h-5 inline mr-2"></i>
+                <span id="connect-text">Conectar</span>
             </button>
         </div>
     </div>
-    
-    <!-- Formulario de Conexión -->
-    <div id="connection-form" class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 mb-6 shadow-card">
-        <h3 class="text-xl font-bold text-neutral-900 mb-6">Conectar a GoAnywhere SFTP</h3>
+
+    <!-- Opciones principales -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         
-        <div class="max-w-md">
-            <div class="mb-6">
-                <label class="block text-sm font-semibold text-neutral-900 mb-2">
-                    <i data-feather="server" class="w-4 h-4 inline mr-2 text-indigo-600"></i>
-                    Servidor
-                </label>
-                <input type="text" 
-                       value="mft.positiva.gov.co:2243" 
-                       disabled
-                       class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-500 cursor-not-allowed">
+        <!-- Opción 1: Gestión de Maestra -->
+        <a href="{{ url_for('consolidador_t25.maestra') }}" class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="database" class="w-7 h-7 text-blue-600"></i>
+                </div>
+                <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center group-hover:bg-blue-500 transition-smooth">
+                    <i data-feather="arrow-right" class="w-4 h-4 text-neutral-400 group-hover:text-white"></i>
+                </div>
             </div>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-semibold text-neutral-900 mb-2">
-                    <i data-feather="user" class="w-4 h-4 inline mr-2 text-indigo-600"></i>
-                    Usuario
-                </label>
-                <input type="text" 
-                       value="G_medica" 
-                       disabled
-                       class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-500 cursor-not-allowed">
+            <h4 class="text-lg font-semibold text-neutral-900 mb-2">Gestión de Maestra</h4>
+            <p class="text-sm text-neutral-600 mb-4">
+                Administrar archivo maestra de contratos vigentes
+            </p>
+            <div class="flex items-center text-sm text-blue-600 font-medium">
+                <span>Administrar</span>
             </div>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-semibold text-neutral-900 mb-2">
-                    <i data-feather="lock" class="w-4 h-4 inline mr-2 text-indigo-600"></i>
-                    Contraseña
-                </label>
-                <input type="password" 
-                       id="password-input"
-                       placeholder="Ingresa la contraseña"
-                       class="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-smooth">
+        </a>
+
+        <!-- Opción 2: Buscar Contrato -->
+        <a href="{{ url_for('consolidador_t25.buscar_contrato_page') }}" class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="search" class="w-7 h-7 text-green-600"></i>
+                </div>
+                <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-smooth">
+                    <i data-feather="arrow-right" class="w-4 h-4 text-neutral-400 group-hover:text-white"></i>
+                </div>
             </div>
-            
-            <button onclick="conectar()" 
-                    id="connect-btn"
-                    class="w-full px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl hover:from-indigo-600 hover:to-indigo-700 transition-smooth font-semibold inline-flex items-center justify-center shadow-md">
-                <i data-feather="log-in" class="w-5 h-5 mr-2"></i>
-                Conectar al Servidor
-            </button>
-        </div>
+            <h4 class="text-lg font-semibold text-neutral-900 mb-2">Buscar Contrato</h4>
+            <p class="text-sm text-neutral-600 mb-4">
+                Procesar un contrato individual específico
+            </p>
+            <div class="flex items-center text-sm text-green-600 font-medium">
+                <span>Buscar</span>
+            </div>
+        </a>
+
+        <!-- Opción 3: Consolidado Masivo -->
+        <a href="{{ url_for('consolidador_t25.consolidar_masivo_page') }}" class="card-gradient rounded-2xl border border-neutral-100 p-6 hover-lift transition-smooth group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center">
+                    <i data-feather="layers" class="w-7 h-7 text-orange-600"></i>
+                </div>
+                <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center group-hover:bg-orange-500 transition-smooth">
+                    <i data-feather="arrow-right" class="w-4 h-4 text-neutral-400 group-hover:text-white"></i>
+                </div>
+            </div>
+            <h4 class="text-lg font-semibold text-neutral-900 mb-2">Consolidado Masivo</h4>
+            <p class="text-sm text-neutral-600 mb-4">
+                Procesar todos los contratos de un año
+            </p>
+            <div class="flex items-center text-sm text-orange-600 font-medium">
+                <span>Consolidar</span>
+            </div>
+        </a>
+
     </div>
-    
-    <!-- Información -->
-    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 sm:p-8 shadow-card">
-        <div class="flex items-center space-x-3 mb-6">
-            <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+
+    <!-- Información del sistema -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6">
+        <div class="flex items-start space-x-4">
+            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <i data-feather="info" class="w-5 h-5 text-indigo-600"></i>
             </div>
-            <h3 class="text-xl font-bold text-neutral-900">¿Cómo funciona?</h3>
-        </div>
-        
-        <div class="grid sm:grid-cols-2 gap-6">
-            <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-100">
-                <h4 class="font-semibold text-neutral-900 mb-4 flex items-center">
-                    <i data-feather="check-circle" class="w-4 h-4 mr-2 text-indigo-600"></i>
-                    Pasos del Proceso
-                </h4>
-                <ol class="space-y-2 text-sm text-neutral-600">
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600 font-bold">1.</span>
-                        <span>Conecta al servidor GoAnywhere con tus credenciales</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600 font-bold">2.</span>
-                        <span>Navega por los directorios usando el explorador</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600 font-bold">3.</span>
-                        <span>Descarga el archivo Excel T25 que necesites</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600 font-bold">4.</span>
-                        <span>Procesa automáticamente y descarga el consolidado</span>
-                    </li>
-                </ol>
-            </div>
-            
-            <div class="bg-neutral-50 rounded-xl p-5 border border-neutral-100">
-                <h4 class="font-semibold text-neutral-900 mb-4 flex items-center">
-                    <i data-feather="file-text" class="w-4 h-4 mr-2 text-indigo-600"></i>
-                    Formatos Soportados
-                </h4>
-                <ul class="space-y-2 text-sm text-neutral-600">
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600">•</span>
-                        <span><strong>.xlsx</strong> - Excel moderno</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600">•</span>
-                        <span><strong>.xls</strong> - Excel antiguo</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600">•</span>
-                        <span><strong>.xlsb</strong> - Excel binario</span>
-                    </li>
-                    <li class="flex items-start space-x-2">
-                        <span class="text-indigo-600">•</span>
-                        <span>Tamaño máximo: <strong>10 MB</strong></span>
-                    </li>
-                </ul>
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold text-neutral-900 mb-3">¿Cómo funciona el Consolidador T25?</h3>
+                
+                <div class="space-y-3 text-sm text-neutral-600">
+                    <div class="flex items-start space-x-2">
+                        <span class="font-semibold text-blue-600 mt-0.5">1.</span>
+                        <p><strong>Gestión de Maestra:</strong> Sube y mantén actualizada la maestra de contratos vigentes (actualización semanal)</p>
+                    </div>
+                    
+                    <div class="flex items-start space-x-2">
+                        <span class="font-semibold text-green-600 mt-0.5">2.</span>
+                        <p><strong>Buscar Contrato:</strong> Busca y procesa un contrato específico individual</p>
+                    </div>
+                    
+                    <div class="flex items-start space-x-2">
+                        <span class="font-semibold text-orange-600 mt-0.5">3.</span>
+                        <p><strong>Consolidado Masivo:</strong> Procesa todos los contratos de un año automáticamente</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-start space-x-2">
+                        <i data-feather="alert-circle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                        <div class="text-sm text-yellow-800">
+                            <p class="font-semibold mb-1">Importante:</p>
+                            <p>Antes de usar el consolidador, asegúrate de:</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>Tener la maestra actualizada</li>
+                                <li>Estar conectado a GoAnywhere</li>
+                                <li>Verificar los permisos de acceso</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
+
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/modules/consolidador_t25.js') }}"></script>
+<script>
+let isConnected = false;
+
+// Verificar estado al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    verificarEstadoConexion();
+});
+
+async function verificarEstadoConexion() {
+    try {
+        const response = await fetch('/modulos/consolidador-t25/estado');
+        const data = await response.json();
+        
+        if (data.conectado) {
+            isConnected = true;
+            actualizarUIConectado();
+        }
+    } catch (error) {
+        console.log('No hay conexión activa');
+    }
+}
+
+async function toggleConexion() {
+    if (isConnected) {
+        await desconectar();
+    } else {
+        await conectar();
+    }
+}
+
+async function conectar() {
+    const connectBtn = document.getElementById('connect-btn');
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    
+    connectBtn.disabled = true;
+    connectBtn.innerHTML = '<i data-feather="loader" class="w-5 h-5 inline mr-2 animate-spin"></i>Conectando...';
+    feather.replace();
+    
+    statusLabel.textContent = 'Conectando...';
+    statusDot.className = 'w-2 h-2 bg-yellow-400 rounded-full animate-pulse';
+    
+    try {
+        const response = await fetch('/modulos/consolidador-t25/conectar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            isConnected = true;
+            showNotification('✅ Conectado a GoAnywhere exitosamente', 'success');
+            actualizarUIConectado();
+        } else {
+            showNotification('❌ Error al conectar: ' + data.error, 'error');
+            resetearUI();
+        }
+        
+    } catch (error) {
+        showNotification('Error de conexión: ' + error.message, 'error');
+        resetearUI();
+    }
+}
+
+async function desconectar() {
+    try {
+        await fetch('/modulos/consolidador-t25/desconectar', {
+            method: 'POST'
+        });
+        
+        isConnected = false;
+        showNotification('Desconectado de GoAnywhere', 'info');
+        resetearUI();
+        
+    } catch (error) {
+        console.error('Error al desconectar:', error);
+    }
+}
+
+function actualizarUIConectado() {
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    const connectBtn = document.getElementById('connect-btn');
+    
+    statusLabel.textContent = 'Conectado';
+    statusDot.className = 'w-2 h-2 bg-green-400 rounded-full';
+    
+    connectBtn.innerHTML = '<i data-feather="wifi-off" class="w-5 h-5 inline mr-2"></i>Desconectar';
+    connectBtn.disabled = false;
+    connectBtn.className = 'px-6 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-smooth font-semibold';
+    
+    feather.replace();
+}
+
+function resetearUI() {
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    const connectBtn = document.getElementById('connect-btn');
+    
+    statusLabel.textContent = 'Desconectado';
+    statusDot.className = 'w-2 h-2 bg-gray-400 rounded-full';
+    
+    connectBtn.innerHTML = '<i data-feather="wifi" class="w-5 h-5 inline mr-2"></i>Conectar';
+    connectBtn.disabled = false;
+    connectBtn.className = 'px-6 py-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition-smooth font-semibold';
+    
+    feather.replace();
+}
+</script>
 {% endblock %}

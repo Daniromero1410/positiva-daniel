@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+
+{% block title %}Consolidado Masivo{% endblock %}
+{% block page_title %}Consolidado Masivo{% endblock %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center space-x-3 mb-2">
+                    <a href="{{ url_for('consolidador_t25.index') }}" class="text-neutral-400 hover:text-neutral-600">
+                        <i data-feather="arrow-left" class="w-5 h-5"></i>
+                    </a>
+                    <i data-feather="layers" class="w-8 h-8 text-orange-600"></i>
+                    <h2 class="text-3xl font-bold text-neutral-900">Consolidado Masivo</h2>
+                </div>
+                <p class="text-neutral-600 ml-11">Procesa todos los contratos de un año automáticamente</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de conexión -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-4 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <i data-feather="server" class="w-5 h-5 text-indigo-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-neutral-900">Conexión GoAnywhere</p>
+                    <div class="flex items-center space-x-2 mt-0.5">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full" id="status-dot"></div>
+                        <span class="text-xs text-neutral-600" id="status-label">Desconectado</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="toggleConexion()" id="connect-btn" class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-smooth text-sm font-medium">
+                <i data-feather="wifi" class="w-4 h-4 inline mr-1"></i>
+                Conectar
+            </button>
+        </div>
+    </div>
+
+    <!-- Selección de año -->
+    <div class="card-gradient rounded-2xl border border-neutral-100 p-6 mb-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Seleccionar Año</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">
+                    Año a Consolidar
+                </label>
+                <select 
+                    id="select-anio" 
+                    class="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    onchange="cargarPreview()"
+                >
+                    <option value="">Selecciona un año...</option>
+                </select>
+            </div>
+
+            <div class="flex items-end">
+                <button 
+                    onclick="cargarPreview()" 
+                    class="w-full px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-smooth font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    id="btn-preview"
+                    disabled
+                >
+                    <i data-feather="eye" class="w-5 h-5 inline mr-2"></i>
+                    Ver Preview de Contratos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview de contratos -->
+    <div id="preview-container" class="hidden card-gradient rounded-2xl border border-neutral-100 p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-neutral-900">Preview de Contratos</h3>
+            <span class="text-sm text-neutral-500" id="total-preview">0 contratos</span>
+        </div>
+
+        <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200 mb-4">
+            <div class="grid grid-cols-4 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold text-orange-600" id="preview-total">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Total Contratos</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-blue-600" id="preview-con-otrosi">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Con Otrosí</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-600" id="preview-con-actas">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Con Actas</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-purple-600" id="preview-tiempo-estimado">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Min. Estimados</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <div class="flex items-start space-x-2">
+                <i data-feather="alert-circle" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"></i>
+                <div class="text-sm text-yellow-800">
+                    <p class="font-semibold mb-1">Advertencia:</p>
+                    <p>El proceso masivo puede tardar varios minutos. No cierres esta ventana hasta que finalice.</p>
+                </div>
+            </div>
+        </div>
+
+        <button 
+            onclick="iniciarConsolidadoMasivo()" 
+            class="w-full px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-smooth font-semibold"
+            id="btn-iniciar"
+        >
+            <i data-feather="play" class="w-5 h-5 inline mr-2"></i>
+            Iniciar Consolidado Masivo
+        </button>
+    </div>
+
+</div>
+
+<!-- Modal de progreso -->
+<div id="modal-progreso" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="text-center mb-6">
+            <div class="mb-4">
+                <div class="inline-block relative">
+                    <div class="w-16 h-16 border-4 border-neutral-200 border-t-orange-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i data-feather="layers" class="w-6 h-6 text-orange-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Procesando Consolidado Masivo</h3>
+            <p class="text-sm text-neutral-600 mb-4" id="mensaje-progreso">Iniciando...</p>
+
+            <!-- Barra de progreso -->
+            <div class="w-full bg-neutral-200 rounded-full h-3 overflow-hidden mb-2">
+                <div id="barra-progreso" class="bg-orange-500 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-neutral-500" id="texto-progreso">0 / 0 contratos procesados</p>
+        </div>
+
+        <div class="bg-neutral-50 rounded-xl p-4 border border-neutral-200 mb-4">
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <p class="text-xl font-bold text-green-600" id="progreso-exitosos">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Exitosos</p>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-red-600" id="progreso-errores">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Errores</p>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-yellow-600" id="progreso-alertas">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Alertas</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="log-container" class="bg-neutral-50 rounded-xl p-4 border border-neutral-200 max-h-60 overflow-y-auto">
+            <div id="log-content" class="space-y-1 text-xs font-mono">
+                <!-- Se llenará con logs del proceso -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de resultado -->
+<div id="modal-resultado" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
+        <div class="text-center mb-6">
+            <div class="mb-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <i data-feather="check-circle" class="w-8 h-8 text-green-600"></i>
+                </div>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-neutral-900 mb-2">¡Consolidado Completado!</h3>
+            <p class="text-neutral-600">El proceso ha finalizado exitosamente</p>
+        </div>
+
+        <div class="bg-neutral-50 rounded-xl p-6 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                    <p class="text-2xl font-bold text-orange-600" id="resultado-total-contratos">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Contratos</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-green-600" id="resultado-total-servicios">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Servicios</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-red-600" id="resultado-con-error">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Errores</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-yellow-600" id="resultado-total-alertas">0</p>
+                    <p class="text-xs text-neutral-500 mt-1">Alertas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex space-x-3">
+            <button 
+                onclick="descargarConsolidado()" 
+                id="btn-descargar-consolidado"
+                class="flex-1 px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-smooth font-semibold"
+            >
+                <i data-feather="download" class="w-5 h-5 inline mr-2"></i>
+                Descargar Consolidado
+            </button>
+            <button 
+                onclick="descargarAlertas()" 
+                id="btn-descargar-alertas"
+                class="flex-1 px-6 py-3 bg-yellow-500 text-white rounded-xl hover:bg-yellow-600 transition-smooth font-semibold"
+            >
+                <i data-feather="alert-circle" class="w-5 h-5 inline mr-2"></i>
+                Descargar Alertas
+            </button>
+        </div>
+
+        <button 
+            onclick="cerrarModalResultado()" 
+            class="w-full mt-3 px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl hover:bg-neutral-300 transition-smooth font-semibold"
+        >
+            Cerrar
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let isConnected = false;
+let anioSeleccionado = null;
+let archivoConsolidado = null;
+let archivoAlertas = null;
+let contratosPreview = [];
+
+// Verificar estado al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    verificarEstadoConexion();
+    cargarAniosDisponibles();
+});
+
+async function verificarEstadoConexion() {
+    try {
+        const response = await fetch('/modulos/consolidador-t25/estado');
+        const data = await response.json();
+        
+        if (data.conectado) {
+            isConnected = true;
+            actualizarUIConectado();
+        }
+    } catch (error) {
+        console.log('No hay conexión activa');
+    }
+}
+
+async function toggleConexion() {
+    if (isConnected) {
+        await desconectar();
+    } else {
+        await conectar();
+    }
+}
+
+async function conectar() {
+    const connectBtn = document.getElementById('connect-btn');
+    
+    connectBtn.disabled = true;
+    connectBtn.innerHTML = '<i data-feather="loader" class="w-4 h-4 inline mr-1 animate-spin"></i>Conectando...';
+    feather.replace();
+    
+    try {
+        const response = await fetch('/modulos/consolidador-t25/conectar', {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            isConnected = true;
+            showNotification('✅ Conectado a GoAnywhere', 'success');
+            actualizarUIConectado();
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+            resetearUI();
+        }
+        
+    } catch (error) {
+        showNotification('❌ Error de conexión', 'error');
+        resetearUI();
+    }
+}
+
+async function desconectar() {
+    try {
+        await fetch('/modulos/consolidador-t25/desconectar', { method: 'POST' });
+        isConnected = false;
+        showNotification('Desconectado de GoAnywhere', 'info');
+        resetearUI();
+    } catch (error) {
+        console.error('Error al desconectar:', error);
+    }
+}
+
+function actualizarUIConectado() {
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    const connectBtn = document.getElementById('connect-btn');
+    
+    statusLabel.textContent = 'Conectado';
+    statusDot.className = 'w-2 h-2 bg-green-400 rounded-full';
+    connectBtn.innerHTML = '<i data-feather="wifi-off" class="w-4 h-4 inline mr-1"></i>Desconectar';
+    connectBtn.className = 'px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-smooth text-sm font-medium';
+    connectBtn.disabled = false;
+    feather.replace();
+}
+
+function resetearUI() {
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    const connectBtn = document.getElementById('connect-btn');
+    
+    statusLabel.textContent = 'Desconectado';
+    statusDot.className = 'w-2 h-2 bg-gray-400 rounded-full';
+    connectBtn.innerHTML = '<i data-feather="wifi" class="w-4 h-4 inline mr-1"></i>Conectar';
+    connectBtn.className = 'px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-smooth text-sm font-medium';
+    connectBtn.disabled = false;
+    feather.replace();
+}
+
+async function cargarAniosDisponibles() {
+    try {
+        const response = await fetch('/modulos/consolidador-t25/consolidar-masivo/anios');
+        const data = await response.json();
+        
+        if (data.success) {
+            const selectAnio = document.getElementById('select-anio');
+            const btnPreview = document.getElementById('btn-preview');
+            
+            data.anios.forEach(anio => {
+                const option = document.createElement('option');
+                option.value = anio;
+                option.textContent = anio;
+                selectAnio.appendChild(option);
+            });
+            
+            selectAnio.disabled = false;
+            btnPreview.disabled = false;
+        }
+    } catch (error) {
+        showNotification('❌ Error al cargar años', 'error');
+    }
+}
+
+async function cargarPreview() {
+    const selectAnio = document.getElementById('select-anio');
+    anioSeleccionado = selectAnio.value;
+    
+    if (!anioSeleccionado) {
+        document.getElementById('preview-container').classList.add('hidden');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/modulos/consolidador-t25/consolidar-masivo/preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ anio: anioSeleccionado })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            contratosPreview = data.contratos;
+            mostrarPreview(data.contratos);
+        } else {
+            showNotification('❌ Error: ' + data.error, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Error de conexión', 'error');
+    }
+}
+
+function mostrarPreview(contratos) {
+    const previewContainer = document.getElementById('preview-container');
+    const totalPreview = document.getElementById('total-preview');
+    const previewTotal = document.getElementById('preview-total');
+    const previewConOtrosi = document.getElementById('preview-con-otrosi');
+    const previewConActas = document.getElementById('preview-con-actas');
+    const previewTiempoEstimado = document.getElementById('preview-tiempo-estimado');
+    
+    totalPreview.textContent = `${contratos.length} contrato${contratos.length !== 1 ? 's' : ''}`;
+    previewTotal.textContent = contratos.length;
+    
+    const conOtrosi = contratos.filter(c => c.otrosi && c.otrosi.length > 0).length;
+    const conActas = contratos.filter(c => c.actas && c.actas.length > 0).length;
+    const tiempoEstimado = Math.ceil(contratos.length * 0.5); // 30 segundos por contrato
+    
+    previewConOtrosi.textContent = conOtrosi;
+    previewConActas.textContent = conActas;
+    previewTiempoEstimado.textContent = tiempoEstimado;
+    
+    previewContainer.classList.remove('hidden');
+}
+
+async function iniciarConsolidadoMasivo() {
+    if (!isConnected) {
+        showNotification('⚠️ Debes conectarte a GoAnywhere primero', 'warning');
+        return;
+    }
+    
+    if (!anioSeleccionado) {
+        showNotification('⚠️ Selecciona un año', 'warning');
+        return;
+    }
+    
+    const modal = document.getElementById('modal-progreso');
+    const mensajeProgreso = document.getElementById('mensaje-progreso');
+    const barraProgreso = document.getElementById('barra-progreso');
+    const textoProgreso = document.getElementById('texto-progreso');
+    const logContent = document.getElementById('log-content');
+    const btnIniciar = document.getElementById('btn-iniciar');
+    
+    modal.classList.remove('hidden');
+    btnIniciar.disabled = true;
+    logContent.innerHTML = '';
+    barraProgreso.style.width = '0%';
+    feather.replace();
+    
+    agregarLog(`🚀 Iniciando consolidado masivo año ${anioSeleccionado}`, 'info');
+    agregarLog(`📊 Total de contratos: ${contratosPreview.length}`, 'info');
+    
+    try {
+        mensajeProgreso.textContent = 'Procesando contratos...';
+        textoProgreso.textContent = `0 / ${contratosPreview.length} contratos procesados`;
+        
+        const response = await fetch('/modulos/consolidador-t25/consolidar-masivo/procesar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ anio: anioSeleccionado })
+        });
+        
+        const data = await response.json();
+        
+        modal.classList.add('hidden');
+        btnIniciar.disabled = false;
+        
+        if (data.success) {
+            archivoConsolidado = data.archivo_consolidado;
+            archivoAlertas = data.archivo_alertas;
+            mostrarResultadoFinal(data);
+        } else {
+            agregarLog('❌ Error: ' + data.error, 'error');
+            showNotification('❌ Error al procesar: ' + data.error, 'error');
+        }
+        
+    } catch (error) {
+        modal.classList.add('hidden');
+        btnIniciar.disabled = false;
+        agregarLog('❌ Error de conexión: ' + error.message, 'error');
+        showNotification('❌ Error de conexión', 'error');
+    }
+}
+
+function agregarLog(mensaje, tipo = 'info') {
+    const logContent = document.getElementById('log-content');
+    const div = document.createElement('div');
+    
+    let colorClass = 'text-neutral-600';
+    if (tipo === 'error') colorClass = 'text-red-600';
+    if (tipo === 'warning') colorClass = 'text-yellow-600';
+    if (tipo === 'success') colorClass = 'text-green-600';
+    
+    div.className = colorClass;
+    div.textContent = `[${new Date().toLocaleTimeString()}] ${mensaje}`;
+    
+    logContent.appendChild(div);
+    logContent.scrollTop = logContent.scrollHeight;
+}
+
+function mostrarResultadoFinal(data) {
+    const modal = document.getElementById('modal-resultado');
+    const resultadoTotalContratos = document.getElementById('resultado-total-contratos');
+    const resultadoTotalServicios = document.getElementById('resultado-total-servicios');
+    const resultadoConError = document.getElementById('resultado-con-error');
+    const resultadoTotalAlertas = document.getElementById('resultado-total-alertas');
+    
+    resultadoTotalContratos.textContent = data.total_contratos;
+    resultadoTotalServicios.textContent = data.total_servicios;
+    resultadoConError.textContent = data.contratos_con_error;
+    resultadoTotalAlertas.textContent = data.total_alertas;
+    
+    modal.classList.remove('hidden');
+    feather.replace();
+}
+
+function descargarConsolidado() {
+    if (archivoConsolidado) {
+        window.location.href = `/modulos/consolidador-t25/download/${archivoConsolidado}`;
+        showNotification('✅ Descargando consolidado...', 'success');
+    }
+}
+
+function descargarAlertas() {
+    if (archivoAlertas) {
+        window.location.href = `/modulos/consolidador-t25/download/${archivoAlertas}`;
+        showNotification('✅ Descargando alertas...', 'success');
+    }
+}
+
+function cerrarModalResultado() {
+    document.getElementById('modal-resultado').classList.add('hidden');
+}
+</script>
+{% endblock %}

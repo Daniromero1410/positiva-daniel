@@ -1,51 +1,88 @@
 { pkgs, ... }:
 
 let
-  # Define a Python environment with all the required packages from requirements.txt.
-  # This makes the environment reproducible as Nix handles all Python dependencies,
-  # avoiding conflicts and ensuring consistency.
-  pythonEnv = pkgs.python3.withPackages (ps: with ps; [
+  pythonEnv = pkgs.python311.withPackages (ps: with ps; [
     flask
+    werkzeug
+    sqlalchemy
     pandas
     openpyxl
-    python-dotenv
-    pyxlsb
+    xlrd
     paramiko
+    cryptography
+    python-dotenv
+    python-dateutil
+    numpy
+    pyxlsb
   ]);
 in
 {
-  # The channel determines which package versions are available.
-  # Using "stable-24.05" for consistency.
   channel = "stable-24.05";
 
-  # A list of packages to install from the specified channel.
   packages = [
-    # Our custom Python environment with all the project's dependencies.
     pythonEnv
+    pkgs.python311Packages.pip
   ];
 
   idx = {
-    # A list of VS Code extensions to install from the Open VSX Registry.
     extensions = [
       "ms-python.python"
     ];
 
-    # Workspace lifecycle hooks.
-    # The onCreate hook for 'pip install' is no longer needed because Nix now
-    # manages all Python packages.
     workspace = {
-      onCreate = {};
+      onCreate = {
+        install-extra-deps = ''
+          echo "Instalando dependencias adicionales..."
+          python3 -m pip install --break-system-packages pyxlsb==1.0.10
+          python3 -m pip install --break-system-packages odfpy==1.4.1
+          echo "Dependencias adicionales instaladas"
+        '';
+        
+        create-folders = ''
+          echo "Creando estructura de carpetas..."
+          cd positiva-automatizacion
+          mkdir -p data/maestra
+          mkdir -p output/consolidador_t25
+          mkdir -p temp/consolidador_t25
+          mkdir -p templates/modules/consolidador_t25
+          echo "Carpetas creadas"
+        '';
+      };
+      
+      onStart = {
+        verify-installation = ''
+          echo "Verificando instalación del Consolidador T25..."
+          cd positiva-automatizacion
+          python3 -c "
+import sys
+try:
+    import flask
+    import pandas
+    import openpyxl
+    import pyxlsb
+    import paramiko
+    import xlrd
+    import odfpy
+    print('Todas las dependencias están instaladas')
+except ImportError as e:
+    print('Falta dependencia:', e)
+    print('Ejecuta: pip install --break-system-packages -r requirements.txt')
+" || true
+        '';
+      };
     };
 
-    # Configure a web preview for your application.
     previews = {
       enable = true;
       previews = {
         web = {
-          command = ["python3" "-m" "flask" "run" "--host" "0.0.0.0" "--port" "$PORT"];
-          # The directory to run the command in.
+          command = ["python3" "app.py"];
           cwd = "positiva-automatizacion";
           manager = "web";
+          env = {
+            FLASK_ENV = "development";
+            FLASK_DEBUG = "1";
+          };
         };
       };
     };
