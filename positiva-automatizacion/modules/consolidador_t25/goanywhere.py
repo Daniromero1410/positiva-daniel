@@ -6,6 +6,7 @@ import paramiko
 from datetime import datetime
 from typing import Dict, List, Optional
 import stat
+import os
 
 class GoAnywhereWebClient:
     """Cliente SFTP para GoAnywhere"""
@@ -252,14 +253,15 @@ class GoAnywhereWebClient:
             return self.sftp.getcwd() or '/'
         return None
     
-    def search_files(self, query: str, search_path: str = '.', max_results: int = 100) -> Dict[str, any]:
+    def search_files(self, query: str, search_path: str = '.', max_results: int = 100, max_time: int = 30) -> Dict[str, any]:
         """
-        Busca archivos recursivamente en el servidor
+        Busca archivos recursivamente en el servidor con timeout
         
         Args:
             query: Término de búsqueda
             search_path: Ruta donde iniciar la búsqueda
             max_results: Máximo número de resultados
+            max_time: Tiempo máximo de búsqueda en segundos
             
         Returns:
             Dict con success, resultados (lista) y total
@@ -271,19 +273,40 @@ class GoAnywhereWebClient:
             }
         
         try:
+            import time
             resultados = []
             query_lower = query.lower()
+            start_time = time.time()
+            carpetas_visitadas = 0
+            max_carpetas = 200  # Límite de carpetas para evitar bloqueos
             
-            def buscar_recursivo(path, depth=0, max_depth=5):
-                if depth > max_depth or len(resultados) >= max_results:
-                    return
+            def buscar_recursivo(path, depth=0, max_depth=4):
+                nonlocal carpetas_visitadas
+                
+                # Verificar timeout
+                if time.time() - start_time > max_time:
+                    return True  # Timeout alcanzado
+                
+                if depth > max_depth or len(resultados) >= max_results or carpetas_visitadas >= max_carpetas:
+                    return False
                 
                 try:
+                    carpetas_visitadas += 1
+                    
                     for attr in self.sftp.listdir_attr(path):
+                        # Verificar timeout en cada iteración
+                        if time.time() - start_time > max_time:
+                            return True
+                        
                         if len(resultados) >= max_results:
                             break
                         
                         nombre = attr.filename
+                        
+                        # Ignorar archivos/carpetas ocultas
+                        if nombre.startswith('.'):
+                            continue
+                        
                         ruta_completa = f"{path}/{nombre}".replace('//', '/')
                         
                         # Si es directorio, buscar recursivamente
@@ -294,34 +317,50 @@ class GoAnywhereWebClient:
                                     'nombre': nombre,
                                     'ruta': ruta_completa,
                                     'tipo': 'directorio',
+                                    'extension': '',
                                     'tamano': 0,
                                     'fecha_modificacion': datetime.fromtimestamp(attr.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
                                     'es_directorio': True
                                 })
-                            buscar_recursivo(ruta_completa, depth + 1, max_depth)
+                            
+                            # Buscar dentro del directorio
+                            timeout_reached = buscar_recursivo(ruta_completa, depth + 1, max_depth)
+                            if timeout_reached:
+                                return True
                         else:
                             # Buscar en nombres de archivos
                             if query_lower in nombre.lower():
+                                # Obtener extensión
+                                extension = os.path.splitext(nombre)[1].lower()
+                                
                                 resultados.append({
                                     'nombre': nombre,
                                     'ruta': ruta_completa,
                                     'tipo': 'archivo',
+                                    'extension': extension,
                                     'tamano': attr.st_size,
                                     'fecha_modificacion': datetime.fromtimestamp(attr.st_mtime).strftime('%Y-%m-%d %H:%M:%S'),
                                     'es_directorio': False
                                 })
-                except Exception as e:
-                    # Ignorar errores de permisos y continuar
+                except PermissionError:
+                    # Ignorar errores de permisos
                     pass
+                except Exception as e:
+                    # Ignorar otros errores y continuar
+                    pass
+                
+                return False
             
             # Iniciar búsqueda recursiva
-            buscar_recursivo(search_path)
+            timeout_reached = buscar_recursivo(search_path)
             
             return {
                 'success': True,
                 'resultados': resultados,
                 'total': len(resultados),
-                'query': query
+                'query': query,
+                'timeout': timeout_reached,
+                'carpetas_visitadas': carpetas_visitadas
             }
             
         except Exception as e:

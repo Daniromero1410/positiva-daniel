@@ -1,5 +1,5 @@
 /**
- * GoAnywhere Explorer para Dashboard - CON BUSCADOR
+ * GoAnywhere Explorer para Dashboard - MEJORADO CON COLORES Y SIN BLOQUEO
  */
 
 let directorioActual = '/';
@@ -7,6 +7,59 @@ let isConnected = false;
 let historialRutas = ['/'];
 let searchTimeout = null;
 let isSearching = false;
+let searchAbortController = null;
+
+// Mapa de colores por extensión
+const EXTENSION_COLORS = {
+    // PDF - Rojo
+    '.pdf': { bg: 'bg-red-100', text: 'text-red-600', icon: 'file-text' },
+    
+    // Excel - Verde
+    '.xlsx': { bg: 'bg-green-100', text: 'text-green-600', icon: 'file-text' },
+    '.xls': { bg: 'bg-green-100', text: 'text-green-600', icon: 'file-text' },
+    '.xlsm': { bg: 'bg-green-100', text: 'text-green-600', icon: 'file-text' },
+    '.xlsb': { bg: 'bg-green-100', text: 'text-green-600', icon: 'file-text' },
+    '.csv': { bg: 'bg-green-100', text: 'text-green-600', icon: 'file-text' },
+    
+    // Word - Azul
+    '.docx': { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'file-text' },
+    '.doc': { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'file-text' },
+    
+    // PowerPoint - Naranja
+    '.pptx': { bg: 'bg-orange-100', text: 'text-orange-600', icon: 'file-text' },
+    '.ppt': { bg: 'bg-orange-100', text: 'text-orange-600', icon: 'file-text' },
+    
+    // Imágenes - Morado
+    '.jpg': { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'image' },
+    '.jpeg': { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'image' },
+    '.png': { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'image' },
+    '.gif': { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'image' },
+    '.bmp': { bg: 'bg-purple-100', text: 'text-purple-600', icon: 'image' },
+    
+    // Comprimidos - Gris oscuro
+    '.zip': { bg: 'bg-gray-200', text: 'text-gray-700', icon: 'archive' },
+    '.rar': { bg: 'bg-gray-200', text: 'text-gray-700', icon: 'archive' },
+    '.7z': { bg: 'bg-gray-200', text: 'text-gray-700', icon: 'archive' },
+    '.tar': { bg: 'bg-gray-200', text: 'text-gray-700', icon: 'archive' },
+    '.gz': { bg: 'bg-gray-200', text: 'text-gray-700', icon: 'archive' },
+    
+    // Texto - Cyan
+    '.txt': { bg: 'bg-cyan-100', text: 'text-cyan-600', icon: 'file-text' },
+    '.log': { bg: 'bg-cyan-100', text: 'text-cyan-600', icon: 'file-text' },
+    '.md': { bg: 'bg-cyan-100', text: 'text-cyan-600', icon: 'file-text' },
+    
+    // Default - Azul claro
+    'default': { bg: 'bg-blue-100', text: 'text-blue-600', icon: 'file-text' }
+};
+
+function getFileStyle(extension, isDirectory) {
+    if (isDirectory) {
+        return { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: 'folder' };
+    }
+    
+    const ext = extension.toLowerCase();
+    return EXTENSION_COLORS[ext] || EXTENSION_COLORS['default'];
+}
 
 // Conectar automáticamente al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
@@ -234,6 +287,10 @@ async function cargarDirectorioActual() {
 function crearElementoArchivo(item) {
     const div = document.createElement('div');
     
+    // Obtener extensión y estilo
+    const extension = item.nombre.includes('.') ? '.' + item.nombre.split('.').pop().toLowerCase() : '';
+    const style = getFileStyle(extension, item.es_directorio);
+    
     // Hacer todo el elemento clickeable
     if (item.es_directorio) {
         div.onclick = () => abrirDirectorio(item.nombre);
@@ -243,14 +300,12 @@ function crearElementoArchivo(item) {
         div.className = 'flex items-center justify-between p-4 bg-white border border-neutral-200 rounded-xl hover:bg-green-50 hover:border-green-300 transition-smooth cursor-pointer';
     }
     
-    const icono = item.es_directorio ? 'folder' : 'file-text';
-    const color = item.es_directorio ? 'text-yellow-600' : 'text-blue-600';
     const tamano = item.es_directorio ? '-' : formatBytes(item.tamano);
     
     div.innerHTML = `
         <div class="flex items-center space-x-4 flex-1 min-w-0">
-            <div class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i data-feather="${icono}" class="w-5 h-5 ${color}"></i>
+            <div class="w-10 h-10 ${style.bg} rounded-lg flex items-center justify-center flex-shrink-0">
+                <i data-feather="${style.icon}" class="w-5 h-5 ${style.text}"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-neutral-900 truncate">${item.nombre}</p>
@@ -436,7 +491,7 @@ function formatBytes(bytes) {
 }
 
 // ============================================
-// FUNCIONES DE BÚSQUEDA
+// FUNCIONES DE BÚSQUEDA MEJORADAS
 // ============================================
 
 async function obtenerSugerencias(query) {
@@ -479,11 +534,11 @@ function mostrarSugerencias(sugerencias) {
             ocultarSugerencias();
         };
         
-        const icono = sug.es_directorio ? 'folder' : 'file-text';
-        const color = sug.es_directorio ? 'text-yellow-600' : 'text-blue-600';
+        const extension = sug.nombre.includes('.') ? '.' + sug.nombre.split('.').pop().toLowerCase() : '';
+        const style = getFileStyle(extension, sug.es_directorio);
         
         div.innerHTML = `
-            <i data-feather="${icono}" class="w-4 h-4 ${color}"></i>
+            <i data-feather="${style.icon}" class="w-4 h-4 ${style.text}"></i>
             <span class="text-sm text-neutral-900 flex-1">${sug.nombre}</span>
             <i data-feather="corner-down-left" class="w-3 h-3 text-neutral-400"></i>
         `;
@@ -505,18 +560,22 @@ async function ejecutarBusqueda() {
     const query = searchInput.value.trim();
     
     if (query.length < 2) {
-        showNotification('La búsqueda debe tener al menos 2 caracteres', 'warning');
+        showNotification('⚠️ La búsqueda debe tener al menos 2 caracteres', 'warning');
         return;
     }
     
     if (isSearching) {
+        showNotification('⚠️ Ya hay una búsqueda en progreso', 'warning');
         return;
     }
     
     isSearching = true;
     ocultarSugerencias();
     
-    // Mostrar loading
+    // Crear AbortController para cancelar búsqueda
+    searchAbortController = new AbortController();
+    
+    // Mostrar loading SIN BLOQUEAR
     const loadingEl = document.getElementById('loading-files');
     const loadingText = document.getElementById('loading-text');
     const filesListEl = document.getElementById('files-list');
@@ -524,7 +583,16 @@ async function ejecutarBusqueda() {
     const pathBreadcrumbEl = document.getElementById('path-breadcrumb');
     
     loadingEl.classList.remove('hidden');
-    loadingText.textContent = `Buscando "${query}" en todas las carpetas...`;
+    loadingText.innerHTML = `
+        Buscando "<strong>${query}</strong>" en todas las carpetas...<br>
+        <span class="text-xs text-neutral-500 mt-2 inline-block">Esto puede tomar hasta 30 segundos</span><br>
+        <button onclick="cancelarBusqueda()" class="mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-smooth">
+            <i data-feather="x" class="w-4 h-4 inline mr-1"></i>
+            Cancelar búsqueda
+        </button>
+    `;
+    feather.replace();
+    
     filesListEl.classList.add('hidden');
     searchResultsEl.classList.add('hidden');
     pathBreadcrumbEl.classList.add('hidden');
@@ -538,18 +606,23 @@ async function ejecutarBusqueda() {
             body: JSON.stringify({ 
                 query,
                 max_results: 100
-            })
+            }),
+            signal: searchAbortController.signal
         });
         
         const data = await response.json();
         
         loadingEl.classList.add('hidden');
         isSearching = false;
+        searchAbortController = null;
         
         if (data.success) {
+            if (data.timeout) {
+                showNotification(`⏱️ Búsqueda detenida por timeout. Se encontraron ${data.total} resultados en ${data.carpetas_visitadas} carpetas`, 'warning');
+            }
             mostrarResultadosBusqueda(data.resultados, query);
         } else {
-            showNotification('Error al buscar: ' + data.error, 'error');
+            showNotification('❌ Error al buscar: ' + data.error, 'error');
             filesListEl.classList.remove('hidden');
             pathBreadcrumbEl.classList.remove('hidden');
         }
@@ -557,9 +630,29 @@ async function ejecutarBusqueda() {
     } catch (error) {
         loadingEl.classList.add('hidden');
         isSearching = false;
-        showNotification('Error de conexión: ' + error.message, 'error');
-        filesListEl.classList.remove('hidden');
-        pathBreadcrumbEl.classList.remove('hidden');
+        searchAbortController = null;
+        
+        if (error.name === 'AbortError') {
+            showNotification('🛑 Búsqueda cancelada', 'info');
+            filesListEl.classList.remove('hidden');
+            pathBreadcrumbEl.classList.remove('hidden');
+        } else {
+            showNotification('❌ Error de conexión: ' + error.message, 'error');
+            filesListEl.classList.remove('hidden');
+            pathBreadcrumbEl.classList.remove('hidden');
+        }
+    }
+}
+
+function cancelarBusqueda() {
+    if (searchAbortController) {
+        searchAbortController.abort();
+        isSearching = false;
+        searchAbortController = null;
+        
+        document.getElementById('loading-files').classList.add('hidden');
+        document.getElementById('files-list').classList.remove('hidden');
+        document.getElementById('path-breadcrumb').classList.remove('hidden');
     }
 }
 
@@ -575,7 +668,8 @@ function mostrarResultadosBusqueda(resultados, query) {
         searchResultsList.innerHTML = `
             <div class="text-center py-12">
                 <i data-feather="search" class="w-16 h-16 text-neutral-300 mx-auto mb-4"></i>
-                <p class="text-neutral-600">No se encontraron resultados para "${query}"</p>
+                <p class="text-neutral-600">No se encontraron resultados para "<strong>${query}</strong>"</p>
+                <p class="text-xs text-neutral-500 mt-2">Intenta con otros términos de búsqueda</p>
             </div>
         `;
         feather.replace();
@@ -593,6 +687,10 @@ function mostrarResultadosBusqueda(resultados, query) {
 function crearElementoResultado(item, query) {
     const div = document.createElement('div');
     
+    // Obtener extensión y estilo
+    const extension = item.extension || '';
+    const style = getFileStyle(extension, item.es_directorio);
+    
     // Hacer clickeable
     if (item.es_directorio) {
         div.onclick = () => {
@@ -605,20 +703,18 @@ function crearElementoResultado(item, query) {
         div.className = 'flex items-center justify-between p-4 bg-white border border-neutral-200 rounded-xl hover:bg-green-50 hover:border-green-300 transition-smooth cursor-pointer';
     }
     
-    const icono = item.es_directorio ? 'folder' : 'file-text';
-    const color = item.es_directorio ? 'text-yellow-600' : 'text-blue-600';
     const tamano = item.es_directorio ? '-' : formatBytes(item.tamano);
     
     // Resaltar término de búsqueda en el nombre
     const nombreResaltado = item.nombre.replace(
         new RegExp(`(${query})`, 'gi'),
-        '<mark class="bg-yellow-200 px-1 rounded">$1</mark>'
+        '<mark class="bg-yellow-200 px-1 rounded font-semibold">$1</mark>'
     );
     
     div.innerHTML = `
         <div class="flex items-center space-x-4 flex-1 min-w-0">
-            <div class="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <i data-feather="${icono}" class="w-5 h-5 ${color}"></i>
+            <div class="w-10 h-10 ${style.bg} rounded-lg flex items-center justify-center flex-shrink-0">
+                <i data-feather="${style.icon}" class="w-5 h-5 ${style.text}"></i>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-neutral-900 mb-1">${nombreResaltado}</p>
