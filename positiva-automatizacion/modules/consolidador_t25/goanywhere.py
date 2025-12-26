@@ -15,7 +15,7 @@ class GoAnywhereWebClient:
     DEFAULT_HOST = 'mft.positiva.gov.co'
     DEFAULT_PORT = 2243
     DEFAULT_USERNAME = 'G_medica'
-    DEFAULT_PASSWORD = 'Uhnbru0sgnpit]'
+    DEFAULT_PASSWORD = ''
     
     def __init__(self, host: str = None, port: int = None, username: str = None):
         """
