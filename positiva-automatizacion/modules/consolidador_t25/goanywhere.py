@@ -12,9 +12,9 @@ class GoAnywhereWebClient:
     """Cliente SFTP para GoAnywhere"""
     
     # Credenciales por defecto
-    DEFAULT_HOST = 'mft.positiva.gov.co'
-    DEFAULT_PORT = 2243
-    DEFAULT_USERNAME = 'G_medica'
+    DEFAULT_HOST = ''
+    DEFAULT_PORT = 
+    DEFAULT_USERNAME = ''
     DEFAULT_PASSWORD = ''
     
     def __init__(self, host: str = None, port: int = None, username: str = None):
